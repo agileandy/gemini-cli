@@ -842,6 +842,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
               sessionStats.currentResponse.candidatesTokenCount
             }
             totalTokenCount={sessionStats.currentResponse.totalTokenCount}
+            authType={config.getContentGeneratorConfig()?.authType}
           />
         </Box>
       </Box>

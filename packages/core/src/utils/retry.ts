@@ -16,9 +16,9 @@ export interface RetryOptions {
 }
 
 const DEFAULT_RETRY_OPTIONS: RetryOptions = {
-  maxAttempts: 5,
+  maxAttempts: 15, // Much more patient - try 15 times before giving up
   initialDelayMs: 5000,
-  maxDelayMs: 30000, // 30 seconds
+  maxDelayMs: 60000, // Allow up to 60 seconds between retries
   shouldRetry: defaultShouldRetry,
 };
 
@@ -94,8 +94,9 @@ export async function retryWithBackoff<T>(
       }
 
       // If we have persistent 429s and a fallback callback for OAuth
+      // Be much more patient - only fallback after 8 consecutive 429s
       if (
-        consecutive429Count >= 2 &&
+        consecutive429Count >= 8 &&
         onPersistent429 &&
         authType === AuthType.LOGIN_WITH_GOOGLE_PERSONAL
       ) {
