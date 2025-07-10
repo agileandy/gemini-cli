@@ -299,11 +299,8 @@ export class GeminiChat {
         });
       };
 
-      // Track API call for daily usage (only for API key users)
-      const authType = this.config.getContentGeneratorConfig()?.authType;
-      if (authType === AuthType.USE_GEMINI || authType === AuthType.USE_VERTEX_AI) {
-        getDailyUsageTracker().incrementCallCount();
-      }
+      // Track API call for daily usage (all auth types have daily limits)
+      getDailyUsageTracker().incrementCallCount();
 
       response = await retryWithBackoff(apiCall, {
         shouldRetry: (error: Error) => {
@@ -416,11 +413,8 @@ export class GeminiChat {
       // for transient issues internally before yielding the async generator, this retry will re-initiate
       // the stream. For simple 429/500 errors on initial call, this is fine.
       // If errors occur mid-stream, this setup won't resume the stream; it will restart it.
-      // Track API call for daily usage (only for API key users)
-      const authType = this.config.getContentGeneratorConfig()?.authType;
-      if (authType === AuthType.USE_GEMINI || authType === AuthType.USE_VERTEX_AI) {
-        getDailyUsageTracker().incrementCallCount();
-      }
+      // Track API call for daily usage (all auth types have daily limits)
+      getDailyUsageTracker().incrementCallCount();
 
       const streamResponse = await retryWithBackoff(apiCall, {
         shouldRetry: (error: Error) => {

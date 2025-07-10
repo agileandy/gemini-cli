@@ -46,8 +46,8 @@ export const Footer: React.FC<FooterProps> = ({
   const limit = tokenLimit(model);
   const percentage = totalTokenCount / limit;
   
-  // Get daily usage stats (only show for API key users)
-  const dailyUsage = authType === 'gemini-api-key' || authType === 'vertex-ai' 
+  // Get daily usage stats (show for all auth types - everyone has daily limits)
+  const dailyUsage = authType 
     ? getDailyUsageTracker().getDailyUsage() 
     : null;
 
