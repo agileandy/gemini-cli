@@ -11,6 +11,33 @@ import { shortenPath, tildeifyPath, tokenLimit, getDailyUsageTracker } from '@go
 import { ConsoleSummaryDisplay } from './ConsoleSummaryDisplay.js';
 import process from 'node:process';
 import { MemoryUsageDisplay } from './MemoryUsageDisplay.js';
+import path from 'node:path';
+
+// Create a more compact path display: ~/...directory-name
+function getCompactPath(targetDir: string): string {
+  const tildePath = tildeifyPath(targetDir);
+  
+  // If it's short enough, just return it
+  if (tildePath.length <= 25) {
+    return tildePath;
+  }
+  
+  // Get the directory name (last part of path)
+  const dirName = path.basename(targetDir);
+  
+  // If it starts with ~/, show ~/...dirName
+  if (tildePath.startsWith('~/')) {
+    return `~/...${dirName}`;
+  }
+  
+  // Otherwise show root/...dirName
+  const parts = tildePath.split(path.sep);
+  if (parts.length > 2) {
+    return `${parts[0]}/...${dirName}`;
+  }
+  
+  return tildePath;
+}
 
 interface FooterProps {
   model: string;
@@ -55,7 +82,7 @@ export const Footer: React.FC<FooterProps> = ({
     <Box marginTop={1} justifyContent="space-between" width="100%">
       <Box>
         <Text color={Colors.LightBlue}>
-          {shortenPath(tildeifyPath(targetDir), 70)}
+          {getCompactPath(targetDir)}
           {branchName && <Text color={Colors.Gray}> ({branchName}*)</Text>}
         </Text>
         {debugMode && (
