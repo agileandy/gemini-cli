@@ -35,6 +35,7 @@ import {
   ApiResponseEvent,
 } from '../telemetry/types.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import { getDailyUsageTracker } from '../utils/dailyUsageTracker.js';
 
 /**
  * Returns true if the response is valid, false otherwise.
@@ -298,6 +299,12 @@ export class GeminiChat {
         });
       };
 
+      // Track API call for daily usage (only for API key users)
+      const authType = this.config.getContentGeneratorConfig()?.authType;
+      if (authType === AuthType.USE_GEMINI || authType === AuthType.USE_VERTEX_AI) {
+        getDailyUsageTracker().incrementCallCount();
+      }
+
       response = await retryWithBackoff(apiCall, {
         shouldRetry: (error: Error) => {
           if (error && error.message) {
@@ -409,6 +416,12 @@ export class GeminiChat {
       // for transient issues internally before yielding the async generator, this retry will re-initiate
       // the stream. For simple 429/500 errors on initial call, this is fine.
       // If errors occur mid-stream, this setup won't resume the stream; it will restart it.
+      // Track API call for daily usage (only for API key users)
+      const authType = this.config.getContentGeneratorConfig()?.authType;
+      if (authType === AuthType.USE_GEMINI || authType === AuthType.USE_VERTEX_AI) {
+        getDailyUsageTracker().incrementCallCount();
+      }
+
       const streamResponse = await retryWithBackoff(apiCall, {
         shouldRetry: (error: Error) => {
           // Check error messages for status codes, or specific error names if known

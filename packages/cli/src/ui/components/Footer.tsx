@@ -7,7 +7,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
-import { shortenPath, tildeifyPath, tokenLimit } from '@google/gemini-cli-core';
+import { shortenPath, tildeifyPath, tokenLimit, getDailyUsageTracker } from '@google/gemini-cli-core';
 import { ConsoleSummaryDisplay } from './ConsoleSummaryDisplay.js';
 import process from 'node:process';
 import { MemoryUsageDisplay } from './MemoryUsageDisplay.js';
@@ -23,6 +23,9 @@ interface FooterProps {
   showErrorDetails: boolean;
   showMemoryUsage?: boolean;
   promptTokenCount: number;
+  candidatesTokenCount: number;
+  totalTokenCount: number;
+  authType?: string; // Add auth type to display
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -36,9 +39,17 @@ export const Footer: React.FC<FooterProps> = ({
   showErrorDetails,
   showMemoryUsage,
   promptTokenCount,
+  candidatesTokenCount,
+  totalTokenCount,
+  authType,
 }) => {
   const limit = tokenLimit(model);
-  const percentage = promptTokenCount / limit;
+  const percentage = totalTokenCount / limit;
+  
+  // Get daily usage stats (only show for API key users)
+  const dailyUsage = authType === 'gemini-api-key' || authType === 'vertex-ai' 
+    ? getDailyUsageTracker().getDailyUsage() 
+    : null;
 
   return (
     <Box marginTop={1} justifyContent="space-between" width="100%">
@@ -85,6 +96,16 @@ export const Footer: React.FC<FooterProps> = ({
           <Text color={Colors.Gray}>
             ({((1 - percentage) * 100).toFixed(0)}% context left)
           </Text>
+          {authType && (
+            <Text color={authType === 'gemini-api-key' ? Colors.AccentRed : Colors.AccentGreen}>
+              {' '}[{authType === 'oauth-personal' ? 'OAuth' : authType === 'gemini-api-key' ? 'API Key' : authType === 'vertex-ai' ? 'Vertex AI' : authType}]
+            </Text>
+          )}
+          {dailyUsage && (
+            <Text color={dailyUsage.isOverLimit ? Colors.AccentRed : dailyUsage.isNearLimit ? Colors.AccentYellow : Colors.Gray}>
+              {' '}({dailyUsage.callCount}/{dailyUsage.limit} calls)
+            </Text>
+          )}
         </Text>
         {corgiMode && (
           <Text>
