@@ -7,7 +7,11 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
-import { shortenPath, tildeifyPath, tokenLimit, getDailyUsageTracker } from '@google/gemini-cli-core';
+import {
+  tildeifyPath,
+  tokenLimit,
+  getDailyUsageTracker,
+} from '@google/gemini-cli-core';
 import { ConsoleSummaryDisplay } from './ConsoleSummaryDisplay.js';
 import process from 'node:process';
 import { MemoryUsageDisplay } from './MemoryUsageDisplay.js';
@@ -16,26 +20,26 @@ import path from 'node:path';
 // Create a more compact path display: ~/...directory-name
 function getCompactPath(targetDir: string): string {
   const tildePath = tildeifyPath(targetDir);
-  
+
   // If it's short enough, just return it
   if (tildePath.length <= 25) {
     return tildePath;
   }
-  
+
   // Get the directory name (last part of path)
   const dirName = path.basename(targetDir);
-  
+
   // If it starts with ~/, show ~/...dirName
   if (tildePath.startsWith('~/')) {
     return `~/...${dirName}`;
   }
-  
+
   // Otherwise show root/...dirName
   const parts = tildePath.split(path.sep);
   if (parts.length > 2) {
     return `${parts[0]}/...${dirName}`;
   }
-  
+
   return tildePath;
 }
 
@@ -49,8 +53,6 @@ interface FooterProps {
   errorCount: number;
   showErrorDetails: boolean;
   showMemoryUsage?: boolean;
-  promptTokenCount: number;
-  candidatesTokenCount: number;
   totalTokenCount: number;
   authType?: string; // Add auth type to display
 }
@@ -65,18 +67,14 @@ export const Footer: React.FC<FooterProps> = ({
   errorCount,
   showErrorDetails,
   showMemoryUsage,
-  promptTokenCount,
-  candidatesTokenCount,
   totalTokenCount,
   authType,
 }) => {
   const limit = tokenLimit(model);
   const percentage = totalTokenCount / limit;
-  
+
   // Get daily usage stats (show for all auth types - everyone has daily limits)
-  const dailyUsage = authType 
-    ? getDailyUsageTracker().getDailyUsage() 
-    : null;
+  const dailyUsage = authType ? getDailyUsageTracker().getDailyUsage() : null;
 
   return (
     <Box marginTop={1} justifyContent="space-between" width="100%">
@@ -124,13 +122,37 @@ export const Footer: React.FC<FooterProps> = ({
             ({((1 - percentage) * 100).toFixed(0)}% context left)
           </Text>
           {authType && (
-            <Text color={authType === 'gemini-api-key' ? Colors.AccentRed : Colors.AccentGreen}>
-              {' '}[{authType === 'oauth-personal' ? 'OAuth' : authType === 'gemini-api-key' ? 'API Key' : authType === 'vertex-ai' ? 'Vertex AI' : authType}]
+            <Text
+              color={
+                authType === 'gemini-api-key'
+                  ? Colors.AccentRed
+                  : Colors.AccentGreen
+              }
+            >
+              {' '}
+              [
+              {authType === 'oauth-personal'
+                ? 'OAuth'
+                : authType === 'gemini-api-key'
+                  ? 'API Key'
+                  : authType === 'vertex-ai'
+                    ? 'Vertex AI'
+                    : authType}
+              ]
             </Text>
           )}
           {dailyUsage && (
-            <Text color={dailyUsage.isOverLimit ? Colors.AccentRed : dailyUsage.isNearLimit ? Colors.AccentYellow : Colors.Gray}>
-              {' '}({dailyUsage.callCount}/{dailyUsage.limit} calls)
+            <Text
+              color={
+                dailyUsage.isOverLimit
+                  ? Colors.AccentRed
+                  : dailyUsage.isNearLimit
+                    ? Colors.AccentYellow
+                    : Colors.Gray
+              }
+            >
+              {' '}
+              ({dailyUsage.callCount}/{dailyUsage.limit} calls)
             </Text>
           )}
         </Text>

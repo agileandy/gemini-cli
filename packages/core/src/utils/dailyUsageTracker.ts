@@ -36,7 +36,7 @@ export class DailyUsageTracker {
       if (fs.existsSync(this.usageFilePath)) {
         const data = fs.readFileSync(this.usageFilePath, 'utf8');
         const usage = JSON.parse(data) as DailyUsage;
-        
+
         // Check if it's a new day
         const today = this.getTodayString();
         if (usage.date !== today) {
@@ -47,10 +47,10 @@ export class DailyUsageTracker {
             lastUpdated: Date.now(),
           };
         }
-        
+
         return usage;
       }
-    } catch (error) {
+    } catch (_error) {
       // If file doesn't exist or is corrupted, start fresh
     }
 
@@ -64,8 +64,11 @@ export class DailyUsageTracker {
   private saveUsage(): void {
     try {
       this.currentUsage.lastUpdated = Date.now();
-      fs.writeFileSync(this.usageFilePath, JSON.stringify(this.currentUsage, null, 2));
-    } catch (error) {
+      fs.writeFileSync(
+        this.usageFilePath,
+        JSON.stringify(this.currentUsage, null, 2),
+      );
+    } catch (_error) {
       // Silently fail if we can't save - don't break the app
       console.warn('Failed to save daily usage tracking:', error);
     }
@@ -80,7 +83,7 @@ export class DailyUsageTracker {
    */
   public incrementCallCount(): void {
     const today = this.getTodayString();
-    
+
     // Reset if it's a new day
     if (this.currentUsage.date !== today) {
       this.currentUsage = {
@@ -89,7 +92,7 @@ export class DailyUsageTracker {
         lastUpdated: Date.now(),
       };
     }
-    
+
     this.currentUsage.callCount++;
     this.saveUsage();
   }
@@ -106,7 +109,7 @@ export class DailyUsageTracker {
     isOverLimit: boolean;
   } {
     const today = this.getTodayString();
-    
+
     // Reset if it's a new day
     if (this.currentUsage.date !== today) {
       this.currentUsage = {
@@ -119,7 +122,7 @@ export class DailyUsageTracker {
     const callCount = this.currentUsage.callCount;
     const remaining = Math.max(0, FREE_TIER_DAILY_LIMIT - callCount);
     const percentage = (callCount / FREE_TIER_DAILY_LIMIT) * 100;
-    
+
     return {
       callCount,
       limit: FREE_TIER_DAILY_LIMIT,

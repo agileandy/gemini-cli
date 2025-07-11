@@ -9,17 +9,19 @@ The original Gemini CLI has a major flaw: it gives up on the superior **Gemini 2
 ## Key Improvements
 
 ### Patient Failover System
+
 **Problem**: Original CLI switched to Flash model after just 2 rate limit errors and 2-second timeouts.  
 **Solution**: Made the CLI **much more persistent** in staying on Pro:
 
 - **8 consecutive 429 errors** needed before fallback (vs 2)
-- **15 retry attempts** instead of 5 
+- **15 retry attempts** instead of 5
 - **10-second timeouts** instead of 2 seconds
 - **60-second max delays** between retries
 
 **Result**: CLI now tries for several minutes to stay on Pro instead of giving up after 15 seconds.
 
 ### Daily Usage Counter
+
 **Problem**: No visibility into API usage, leading to unexpected hits of the 100 calls/day limit.  
 **Solution**: Smart usage tracking with visual warnings:
 
@@ -29,6 +31,7 @@ The original Gemini CLI has a major flaw: it gives up on the superior **Gemini 2
 - **Resets daily** automatically
 
 ### Auth Method Transparency
+
 **Problem**: Unclear which auth method is active, leading to unexpected billing.  
 **Solution**: Clear visual indicators:
 
@@ -39,6 +42,7 @@ The original Gemini CLI has a major flaw: it gives up on the superior **Gemini 2
 ## Installation & Usage
 
 ### Quick Start
+
 ```bash
 git clone https://github.com/agileandy/gemini-cli.git
 cd gemini-cli
@@ -48,11 +52,13 @@ npm start
 ```
 
 ### Setup
+
 1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)
 2. Set your API key: `export GEMINI_API_KEY="your-api-key-here"`
 3. Run: `gemini`
 
 ### Key Features
+
 - **Interactive Chat** with Gemini AI models
 - **File Context** - automatically include relevant files
 - **Tool Integration** - file operations, web search, shell commands
@@ -62,12 +68,14 @@ npm start
 ## Why These Changes Matter
 
 ### Before (Original):
+
 - Constant frustration with Flash model limitations
 - Unexpected billing when thinking you're using OAuth
 - Hitting 100-call limit without warning
 - Premature fallback from Pro to Flash
 
 ### After (This Fork):
+
 - **Stays on Pro model much longer** - no more premature Flash fallbacks
 - **Always know your auth status** - red for billed, green for free
 - **Never hit usage limits unexpectedly** - clear counter with warnings
@@ -76,7 +84,7 @@ npm start
 ## Documentation
 
 - [Authentication Setup](./docs/cli/authentication.md)
-- [Configuration Guide](./docs/cli/configuration.md) 
+- [Configuration Guide](./docs/cli/configuration.md)
 - [Tools Overview](./docs/tools/index.md)
 - [MCP Server Integration](./docs/tools/mcp-server.md)
 
