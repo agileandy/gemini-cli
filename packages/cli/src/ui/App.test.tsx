@@ -67,6 +67,8 @@ interface MockServerConfig {
   getAccessibility: Mock<() => AccessibilitySettings>;
   getProjectRoot: Mock<() => string | undefined>;
   getAllGeminiMdFilenames: Mock<() => string[]>;
+  refreshAuth: Mock<(authType: string) => Promise<void>>;
+  getContentGeneratorConfig: Mock<() => { authType: string } | undefined>;
 }
 
 // Mock @google/gemini-cli-core and its Config class
@@ -129,6 +131,10 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
         getAllGeminiMdFilenames: vi.fn(() => ['GEMINI.md']),
         setFlashFallbackHandler: vi.fn(),
         getSessionId: vi.fn(() => 'test-session-id'),
+        refreshAuth: vi.fn().mockResolvedValue(undefined),
+        getContentGeneratorConfig: vi.fn(() => ({
+          authType: 'gemini-api-key',
+        })),
       };
     });
   return {
@@ -234,6 +240,7 @@ describe('App UI', () => {
 
     // Ensure a theme is set so the theme dialog does not appear.
     mockSettings = createMockSettings({ workspace: { theme: 'Default' } });
+    (mockConfig as unknown as ServerConfig).refreshAuth('gemini-api-key');
   });
 
   afterEach(() => {

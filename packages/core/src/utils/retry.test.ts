@@ -52,6 +52,7 @@ describe('retryWithBackoff', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   it('should return the result on the first attempt if successful', async () => {
@@ -242,24 +243,18 @@ describe('retryWithBackoff', () => {
     it('should trigger fallback for OAuth personal users after persistent 429 errors', async () => {
       const fallbackCallback = vi.fn().mockResolvedValue('gemini-2.5-flash');
 
-      let fallbackOccurred = false;
-      const mockFn = vi.fn().mockImplementation(async () => {
-        if (!fallbackOccurred) {
-          const error: HttpError = new Error('Rate limit exceeded');
-          error.status = 429;
-          throw error;
-        }
-        return 'success';
-      });
+      const mockFn = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockResolvedValue('success');
 
       const promise = retryWithBackoff(mockFn, {
         maxAttempts: 3,
         initialDelayMs: 100,
-        onPersistent429: async (authType?: string) => {
-          fallbackOccurred = true;
-          return await fallbackCallback(authType);
-        },
+        onPersistent429: fallbackCallback,
         authType: 'oauth-personal',
+        shouldRetry: () => true,
       });
 
       // Advance all timers to complete retries
@@ -269,7 +264,10 @@ describe('retryWithBackoff', () => {
       await expect(promise).resolves.toBe('success');
 
       // Verify callback was called with correct auth type
-      expect(fallbackCallback).toHaveBeenCalledWith('oauth-personal');
+      expect(fallbackCallback).toHaveBeenCalledWith(
+        'oauth-personal',
+        expect.any(Error),
+      );
 
       // Should retry again after fallback
       expect(mockFn).toHaveBeenCalledTimes(3); // 2 initial attempts + 1 after fallback
@@ -305,26 +303,20 @@ describe('retryWithBackoff', () => {
     });
 
     it('should reset attempt counter and continue after successful fallback', async () => {
-      let fallbackCalled = false;
-      const fallbackCallback = vi.fn().mockImplementation(async () => {
-        fallbackCalled = true;
-        return 'gemini-2.5-flash';
-      });
+      const fallbackCallback = vi.fn().mockResolvedValue('gemini-2.5-flash');
 
-      const mockFn = vi.fn().mockImplementation(async () => {
-        if (!fallbackCalled) {
-          const error: HttpError = new Error('Rate limit exceeded');
-          error.status = 429;
-          throw error;
-        }
-        return 'success';
-      });
+      const mockFn = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockResolvedValue('success');
 
       const promise = retryWithBackoff(mockFn, {
         maxAttempts: 3,
         initialDelayMs: 100,
         onPersistent429: fallbackCallback,
         authType: 'oauth-personal',
+        shouldRetry: () => true,
       });
 
       await vi.runAllTimersAsync();
@@ -347,6 +339,7 @@ describe('retryWithBackoff', () => {
         initialDelayMs: 100,
         onPersistent429: fallbackCallback,
         authType: 'oauth-personal',
+        shouldRetry: () => true,
       });
 
       // Handle the promise properly to avoid unhandled rejections
@@ -365,35 +358,20 @@ describe('retryWithBackoff', () => {
 
     it('should handle mixed error types (only count consecutive 429s)', async () => {
       const fallbackCallback = vi.fn().mockResolvedValue('gemini-2.5-flash');
-      let attempts = 0;
-      let fallbackOccurred = false;
 
-      const mockFn = vi.fn().mockImplementation(async () => {
-        attempts++;
-        if (fallbackOccurred) {
-          return 'success';
-        }
-        if (attempts === 1) {
-          // First attempt: 500 error (resets consecutive count)
-          const error: HttpError = new Error('Server error');
-          error.status = 500;
-          throw error;
-        } else {
-          // Remaining attempts: 429 errors
-          const error: HttpError = new Error('Rate limit exceeded');
-          error.status = 429;
-          throw error;
-        }
-      });
+      const mockFn = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Server error'))
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockRejectedValueOnce(new Error('Rate limit exceeded'))
+        .mockResolvedValue('success');
 
       const promise = retryWithBackoff(mockFn, {
         maxAttempts: 5,
         initialDelayMs: 100,
-        onPersistent429: async (authType?: string) => {
-          fallbackOccurred = true;
-          return await fallbackCallback(authType);
-        },
+        onPersistent429: fallbackCallback,
         authType: 'oauth-personal',
+        shouldRetry: () => true,
       });
 
       await vi.runAllTimersAsync();
@@ -401,7 +379,10 @@ describe('retryWithBackoff', () => {
       await expect(promise).resolves.toBe('success');
 
       // Should trigger fallback after 2 consecutive 429s (attempts 2-3)
-      expect(fallbackCallback).toHaveBeenCalledWith('oauth-personal');
+      expect(fallbackCallback).toHaveBeenCalledWith(
+        'oauth-personal',
+        expect.any(Error),
+      );
     });
   });
 });

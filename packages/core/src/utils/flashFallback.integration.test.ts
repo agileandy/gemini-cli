@@ -69,7 +69,7 @@ describe('Flash Fallback Integration', () => {
     });
 
     // Test with OAuth personal auth type, with maxAttempts = 2 to ensure fallback triggers
-    const result = await retryWithBackoff(mockApiCall, {
+    const resultPromise = retryWithBackoff(mockApiCall, {
       maxAttempts: 2,
       initialDelayMs: 1,
       maxDelayMs: 10,
@@ -81,6 +81,8 @@ describe('Flash Fallback Integration', () => {
       authType: AuthType.LOGIN_WITH_GOOGLE,
     });
 
+    await expect(resultPromise).resolves.toBe('success after fallback');
+
     // Verify fallback was triggered
     expect(fallbackCalled).toBe(true);
     expect(fallbackModel).toBe(DEFAULT_GEMINI_FLASH_MODEL);
@@ -88,7 +90,6 @@ describe('Flash Fallback Integration', () => {
       AuthType.LOGIN_WITH_GOOGLE,
       expect.any(Error),
     );
-    expect(result).toBe('success after fallback');
     // Should have: 2 failures, then fallback triggered, then 1 success after retry reset
     expect(mockApiCall).toHaveBeenCalledTimes(3);
   });

@@ -908,8 +908,6 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
             showMemoryUsage={
               config.getDebugMode() || config.getShowMemoryUsage()
             }
-            promptTokenCount={sessionStats.lastPromptTokenCount}
-            candidatesTokenCount={0}
             totalTokenCount={sessionStats.lastPromptTokenCount}
             authType={config.getContentGeneratorConfig()?.authType}
           />

@@ -70,7 +70,7 @@ export class DailyUsageTracker {
       );
     } catch (_error) {
       // Silently fail if we can't save - don't break the app
-      console.warn('Failed to save daily usage tracking:', error);
+      console.warn('Failed to save daily usage tracking:', _error);
     }
   }
 
@@ -81,7 +81,7 @@ export class DailyUsageTracker {
   /**
    * Increment the daily call counter
    */
-  public incrementCallCount(): void {
+  incrementCallCount(): void {
     const today = this.getTodayString();
 
     // Reset if it's a new day
@@ -100,7 +100,7 @@ export class DailyUsageTracker {
   /**
    * Get current daily usage stats
    */
-  public getDailyUsage(): {
+  getDailyUsage(): {
     callCount: number;
     limit: number;
     percentage: number;
@@ -136,7 +136,7 @@ export class DailyUsageTracker {
   /**
    * Reset the daily counter (for testing or manual reset)
    */
-  public resetDailyCount(): void {
+  resetDailyCount(): void {
     this.currentUsage = {
       date: this.getTodayString(),
       callCount: 0,

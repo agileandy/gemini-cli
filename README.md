@@ -90,7 +90,7 @@ npm start
 
 ## Based On
 
-This fork is based on the official [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) v0.1.9, with significant improvements to model persistence and usage transparency.
+This fork is based on the official [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) v0.1.10, with significant improvements to model persistence and usage transparency.
 
 ## License
 
